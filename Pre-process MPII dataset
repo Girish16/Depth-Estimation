@@ -1,0 +1,40 @@
+import pandas as pd
+
+data = pd.read_csv("MPIIGaze/Data/MPIIGaze_kaggle_students.csv")
+
+data = data.dropna() # remove any rows with missing values
+
+from sklearn.model_selection import train_test_split
+
+X = data[["left_eye_x", "left_eye_y", "right_eye_x", "right_eye_y"]]
+y = data[["gaze_x", "gaze_y"]]
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+
+from keras.preprocessing.image import ImageDataGenerator
+
+datagen = ImageDataGenerator(
+    rotation_range=10,
+    zoom_range=0.1,
+    width_shift_range=0.1,
+    height_shift_range=0.1,
+    horizontal_flip=True,
+    fill_mode='nearest')
+
+from sklearn.preprocessing import StandardScaler
+
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+import numpy as np
+
+np.save("X_train.npy", X_train)
+np.save("y_train.npy", y_train)
+np.save("X_test.npy", X_test)
+np.save("y_test.npy", y_test)
+
+X_train = np.array(X_train)
+y_train = np.array(y_train)
+X_test = np.array(X_test)
+y_test = np.array(y_test)
