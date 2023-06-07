@@ -94,7 +94,7 @@ with strategy.scope():
     y= Add()([x1, y]) 
 
     encoder = Model(inp,y,name='encoder')
-    epochs = 25
+    epochs = 24
     batch_size = 24
     encoder.summary()
     encoder.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=1e-05,epsilon=1e-07), loss='RMSE')
