@@ -16,7 +16,7 @@ model_configs = {
 }
 
 # Select encoder type
-encoder = 'vitl'  # Change to 'vits', 'vitb', or 'vitg' as needed
+encoder = 'vitl' 'using vitl weights from https://github.com/DepthAnything/Depth-Anything-V2'
 
 # Initialize model
 model = DepthAnythingV2(**model_configs[encoder])
