@@ -1,0 +1,52 @@
+import cv2
+import torch
+from depth_anything_v2.dpt import DepthAnythingV2
+
+# Check device availability
+DEVICE = 'cuda' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu'
+if DEVICE == 'cpu':
+    print("Neither CUDA nor MPS is available. Using CPU for inference, which may be slower.")
+
+# Model configurations
+model_configs = {
+    'vits': {'encoder': 'vits', 'features': 64, 'out_channels': [48, 96, 192, 384]},
+    'vitb': {'encoder': 'vitb', 'features': 128, 'out_channels': [96, 192, 384, 768]},
+    'vitl': {'encoder': 'vitl', 'features': 256, 'out_channels': [256, 512, 1024, 1024]},
+    'vitg': {'encoder': 'vitg', 'features': 384, 'out_channels': [1536, 1536, 1536, 1536]}
+}
+
+# Select encoder type
+encoder = 'vitl'  # Change to 'vits', 'vitb', or 'vitg' as needed
+
+# Initialize model
+model = DepthAnythingV2(**model_configs[encoder])
+
+# Load model checkpoint with error handling
+try:
+    checkpoint_path = f'checkpoints/depth_anything_v2_{encoder}.pth'
+    model.load_state_dict(torch.load(checkpoint_path, map_location='cpu'))
+except FileNotFoundError:
+    raise FileNotFoundError(f"Checkpoint file not found: {checkpoint_path}")
+except Exception as e:
+    raise RuntimeError(f"Error loading checkpoint: {e}")
+
+# Move model to the appropriate device and set to evaluation mode
+model = model.to(DEVICE).eval()
+
+# Read and validate the input image
+image_path = 'demo01.jpg'  # Replace with your image path
+raw_img = cv2.imread(image_path)
+if raw_img is None:
+    raise FileNotFoundError(f"Image not found at path: {image_path}")
+
+# Run inference
+depth = model.infer_image(raw_img)  # HxW raw depth map in numpy
+
+# Normalize depth map for visualization
+normalized_depth = (depth - depth.min()) / (depth.max() - depth.min())
+
+# Display the depth map
+cv2.imshow('Depth Map', normalized_depth)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+
